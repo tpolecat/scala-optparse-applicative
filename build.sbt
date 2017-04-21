@@ -1,10 +1,10 @@
 version := "0.7"
 
-organization := "net.bmjames"
+organization := "org.tpolecat"
 
-name := "scala-optparse-applicative"
+name := "argali"
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.12.1"
 
 crossScalaVersions := List("2.10.6", "2.11.8", "2.12.1")
 
@@ -14,10 +14,12 @@ scalacOptions ++= List(
   "-unchecked",
   "-Xlint",
   "-language:existentials",
-  "-language:higherKinds")
+  "-language:higherKinds",
+  "-Ypartial-unification"
+)
 
 libraryDependencies ++= List(
-  "org.scalaz" %% "scalaz-core" % "7.2.7",
+  "org.typelevel" %% "cats" % "0.9.0",
   "org.scalacheck" %% "scalacheck" % "1.12.6" % "test")
 
 addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.3" cross CrossVersion.binary)
