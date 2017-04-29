@@ -3,13 +3,13 @@ package net.bmjames.opts.helpdoc
 import net.bmjames.opts.internal.words
 import net.bmjames.opts.types.Doc
 
-import scalaz.{Applicative, Monoid, MonadPlus}
-import scalaz.std.list._
-import scalaz.std.option._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
 
-import scalaz.syntax.std.option._
-import scalaz.syntax.monadPlus._
-import scalaz.syntax.foldable._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
 
 
 /** The free monoid on a semigroup A */
@@ -25,8 +25,8 @@ object Chunk {
 
   def empty[A]: Chunk[A] = Chunk(None)
 
-  implicit val chunkMonadPlus: MonadPlus[Chunk] =
-    new MonadPlus[Chunk] {
+  implicit val chunkMonadCombine: MonadCombine[Chunk] =
+    new MonadCombine[Chunk] {
       def point[A](a: => A): Chunk[A] =
         Chunk(Some(a))
 
@@ -58,7 +58,7 @@ object Chunk {
   def fromList[A: Monoid](as: List[A]): Chunk[A] =
     as match {
       case Nil => Monoid[Chunk[A]].zero
-      case as  => as.foldMap().point[Chunk]
+      case as  => as.foldMap().pure[Chunk]
     }
 
   implicit class DocChunkSyntax(self: Chunk[Doc]) {

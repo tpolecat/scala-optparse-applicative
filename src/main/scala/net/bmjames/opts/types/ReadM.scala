@@ -1,21 +1,21 @@
 package net.bmjames.opts.types
 
-import scalaz.{Kleisli, ReaderT, \/, MonadPlus}
-import scalaz.syntax.applicativePlus._
-import scalaz.syntax.either._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
 
 /** A newtype over the Either monad used by option readers.
   */
-final case class ReadM[A](run: ReaderT[ParseError \/ ?, String, A])
+final case class ReadM[A](run: ReaderT[ParseError Either ?, String, A])
 
 object ReadM {
 
-  def mkReadM[A](f: String => ParseError \/ A): ReadM[A] =
-    ReadM(Kleisli[ParseError \/ ?, String, A](f))
+  def mkReadM[A](f: String => ParseError Either A): ReadM[A] =
+    ReadM(Kleisli[ParseError Either ?, String, A](f))
 
   /** Return the value being read. */
   def ask: ReadM[String] =
-    ReadM(Kleisli.ask[ParseError \/ ?, String])
+    ReadM(Kleisli.ask[ParseError Either ?, String])
 
   /** Abort option reader by exiting with a ParseError. */
   def abort[A](e: ParseError): ReadM[A] =
@@ -25,8 +25,8 @@ object ReadM {
   def error[A](e: String): ReadM[A] =
     abort(ErrorMsg(e))
 
-  implicit val readMMonadPlus: MonadPlus[ReadM] =
-    new MonadPlus[ReadM] {
+  implicit val readMMonadCombine: MonadCombine[ReadM] =
+    new MonadCombine[ReadM] {
       def bind[A, B](fa: ReadM[A])(f: A => ReadM[B]): ReadM[B] =
         ReadM(fa.run.flatMap(a => f(a).run))
 
@@ -38,6 +38,6 @@ object ReadM {
 
       def plus[A](a: ReadM[A], b: => ReadM[A]): ReadM[A] =
         mkReadM(s => a.run.run(s) <+> b.run.run(s))
-        //a.run.fold(_ => b, a => a.point[ReadM])
+        //a.run.fold(_ => b, a => a.pure[ReadM])
     }
 }

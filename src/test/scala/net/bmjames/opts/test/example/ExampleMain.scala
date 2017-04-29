@@ -4,8 +4,8 @@ import java.io.File
 
 import net.bmjames.opts._
 
-import scalaz.NonEmptyList
-import scalaz.syntax.applicativePlus._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
 
 object ExampleMain {
 

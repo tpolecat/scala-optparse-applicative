@@ -1,8 +1,8 @@
 package net.bmjames.opts.builder.internal
 
-import scalaz.Monoid
-import scalaz.std.option._
-import scalaz.syntax.plus._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
 
 case class DefaultProp[A](default: Option[A], sDef: Option[A => String])
 

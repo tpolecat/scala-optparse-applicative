@@ -1,6 +1,6 @@
 package net.bmjames.opts.common
 
-import scalaz.Monoid
+import cats._, cats.data._, cats.implicits._
 
 sealed trait MatchResult
 case object NoMatch extends MatchResult

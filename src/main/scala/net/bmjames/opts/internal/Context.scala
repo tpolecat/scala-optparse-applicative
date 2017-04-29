@@ -1,6 +1,6 @@
 package net.bmjames.opts.internal
 
-import scalaz.Monoid
+import cats._, cats.data._, cats.implicits._
 import net.bmjames.opts.types.ParserInfo
 
 sealed trait Context

@@ -2,11 +2,11 @@ package net.bmjames.opts
 
 import net.bmjames.opts.types.{ReadM, ParseError, ParserPrefs}
 
-import scalaz.\/
+import cats._, cats.data._, cats.implicits._
 
 package object internal {
 
-  def runP[A](p: P[A], pprefs: ParserPrefs): (Context, ParseError \/ A) =
+  def runP[A](p: P[A], pprefs: ParserPrefs): (Context, ParseError Either A) =
     p.run.run.run.run(pprefs)
 
   def uncons[A](xs: List[A]): Option[(A, List[A])] =

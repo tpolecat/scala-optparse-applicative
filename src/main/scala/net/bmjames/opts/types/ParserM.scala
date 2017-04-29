@@ -1,8 +1,8 @@
 package net.bmjames.opts.types
 
-import scalaz.{IList, NonEmptyList, Monad}
-import scalaz.std.option.{some, none}
-import scalaz.syntax.applicativePlus._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
 
 trait ParserM[R] {
   def run[X](f: R => Parser[X]): Parser[X]
@@ -18,7 +18,7 @@ object ParserM {
       def run[X](f: A => Parser[X]): Parser[X] = BindP(p, f)
     }
 
-  import scalaz.syntax.bind._
+  import cats._, cats.data._, cats.implicits._
 
   def manyM[A](p: Parser[A]): ParserM[List[A]] =
     oneM(p.map(some) <+> none[A].pure[Parser]).flatMap {

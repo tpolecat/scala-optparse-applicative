@@ -7,8 +7,8 @@ import Arbitrary._, Gen._
 
 object DocSpec extends Properties("Doc") {
   val stringDocGen = arbitrary[String].map(Doc.string(_))
-  val lineOrEmptyDocGen = Gen.oneOf(Doc.line, Doc.Empty)
-  val appendDocGen = Gen.listOfN(10, Gen.frequency((3, stringDocGen), (1, lineOrEmptyDocGen))).map{
+  val lineorEmptyKDocGen = Gen.oneOf(Doc.line, Doc.Empty)
+  val appendDocGen = Gen.listOfN(10, Gen.frequency((3, stringDocGen), (1, lineorEmptyKDocGen))).map{
     _.reduce(Doc.append(_,_))
   }
   implicit val arbDoc = Arbitrary(appendDocGen)

@@ -1,8 +1,8 @@
 package net.bmjames.opts.test.example
 
 import net.bmjames.opts._
-import scalaz.{Applicative, Validation, ValidationNel, Success, Failure}
-import scalaz.syntax.apply._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
 
 /** Demonstrates combining option parsing (which fails fast when it encounters errors)
   * with error-accumulating validation (using scalaz.Validation).

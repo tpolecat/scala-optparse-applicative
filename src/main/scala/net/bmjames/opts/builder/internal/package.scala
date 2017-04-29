@@ -4,9 +4,7 @@ import net.bmjames.opts.common.liftOpt
 import net.bmjames.opts.helpdoc.Chunk
 import net.bmjames.opts.types._
 
-import scalaz.syntax.applicativePlus._
-import scalaz.syntax.std.option._
-import scalaz.std.option._
+import cats._, cats.data._, cats.implicits._, cats.misc._
 
 package object internal {
 
@@ -16,7 +14,7 @@ package object internal {
   }
 
   def mkParser[A](prop: DefaultProp[A], g: OptProperties => OptProperties, reader: OptReader[A]): Parser[A] =
-    liftOpt(mkOption(prop, g, reader)) <+> prop.default.orEmpty[Parser]
+    liftOpt(mkOption(prop, g, reader)) <+> prop.default.orEmptyK[Parser]
 
   def mkOption[A](prop: DefaultProp[A], g: OptProperties => OptProperties, reader: OptReader[A]): Opt[A] =
     Opt(reader, mkProps(prop, g))

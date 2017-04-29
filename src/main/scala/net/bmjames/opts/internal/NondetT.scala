@@ -1,9 +1,9 @@
 package net.bmjames.opts.internal
 
-import scalaz._
-import scalaz.syntax.monad._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
 
-import ListT.listTMonadPlus
+import ListT.listTMonadCombine
 
 final case class NondetT[F[_], A](run: ListT[BoolState[F]#λ, A]) {
 
@@ -48,11 +48,11 @@ object NondetT {
         case _       => None
       }
 
-  protected def ltmp[F[_]: Monad] = listTMonadPlus[BoolState[F]#λ]
+  protected def ltmp[F[_]: Monad] = listTMonadCombine[BoolState[F]#λ]
   protected def mState[F[_]: Monad] = MonadState[StateT[F,Boolean,?], Boolean]
 
-  implicit def nondetTMonadPlus[F[_] : Monad]: MonadPlus[NondetT[F,?]] =
-    new MonadPlus[NondetT[F, ?]] {
+  implicit def nondetTMonadCombine[F[_] : Monad]: MonadCombine[NondetT[F,?]] =
+    new MonadCombine[NondetT[F, ?]] {
       def bind[A, B](fa: NondetT[F, A])(f: A => NondetT[F, B]): NondetT[F, B] = fa.flatMap(f)
 
       def point[A](a: => A): NondetT[F, A] = NondetT.pure(a)
@@ -62,12 +62,16 @@ object NondetT {
       def plus[A](a: NondetT[F, A], b: => NondetT[F, A]): NondetT[F, A] = a orElse b
     }
 
-  implicit def nondetTTrans: MonadTrans[NondetT] =
-    new MonadTrans[NondetT] {
-      implicit def apply[G[_]: Monad]: Monad[NondetT[G,?]] =
-        nondetTMonadPlus[G]
+  // implicit def nondetTTrans: MonadTrans[NondetT] =
+  //   new MonadTrans[NondetT] {
+  //     implicit def apply[G[_]: Monad]: Monad[NondetT[G,?]] =
+  //       nondetTMonadCombine[G]
+  //
+  //     def liftM[G[_]: Monad, A](a: G[A]): NondetT[G, A] =
+  //       NondetT(StateT[G, Boolean, A](s => a.map(s -> _)).liftM[ListT])
+  //   }
 
-      def liftM[G[_]: Monad, A](a: G[A]): NondetT[G, A] =
-        NondetT(StateT[G, Boolean, A](s => a.map(s -> _)).liftM[ListT])
-    }
+  implicit val nondetTTrans: TransLift[NondetT] { type TC[M[_]] = Monad[M] } =
+    ???
+
 }

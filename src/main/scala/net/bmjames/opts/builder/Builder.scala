@@ -5,18 +5,27 @@ import net.bmjames.opts.builder.internal._
 import net.bmjames.opts.types._
 import net.bmjames.opts.helpdoc.Chunk
 
-import scalaz._
-import scalaz.syntax.std.option._
-import scalaz.syntax.semigroup._
-import scalaz.syntax.monadPlus._
-import scalaz.syntax.foldable._
-import scalaz.std.option._
-import scalaz.std.list._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
 
 private[opts] trait Builder {
 
   // Since Scalaz has no Read type class, there is no 'auto' function here.
   // Instead, I've implemented fromTryCatch, so you can use Scala's unsafe conversions such as 'toInt'
+
+  case class Endo[A](run: A => A)
+  object Endo {
+    implicit def endoMonoid[A]: Monoid[Endo[A]] =
+      new Monoid[Endo[A]] {
+        def empty = Endo[A](identity)
+      }
+  }
+
 
   /** String reader. */
   val readStr: ReadM[String] = ReadM.ask
@@ -28,7 +37,7 @@ private[opts] trait Builder {
   val readChar: ReadM[Char] =
     ReadM.ask.flatMap { arg =>
       arg.toList match {
-        case c :: Nil => c.point[ReadM]
+        case c :: Nil => c.pure[ReadM]
         case _        => ReadM.error(s"cannot parse value `$arg'")
       }
     }
@@ -57,7 +66,7 @@ private[opts] trait Builder {
   /** Turns an unsafe conversion function into a reader by catching non-fatal exceptions. */
   def fromTryCatch[A](f: String => A): ReadM[A] =
     ReadM.mkReadM { arg =>
-      \/.fromTryCatchNonFatal(f(arg)).leftMap(_ => ErrorMsg(s"cannot parse value `$arg'"))
+      Either.catchNonFatal(f(arg)).leftMap(_ => ErrorMsg(s"cannot parse value `$arg'"))
     }
 
   /** Null Option reader. All arguments will fail validation. */
@@ -93,8 +102,8 @@ private[opts] trait Builder {
     Mod.option(_.copy(help = Chunk(doc)))
 
   /** Convert a function in the Either monad to a reader. */
-  def eitherReader[A](f: String => String \/ A): ReadM[A] =
-    ReadM.ask.flatMap(arg => f(arg).fold(ReadM.error, _.point[ReadM]))
+  def eitherReader[A](f: String => String Either A): ReadM[A] =
+    ReadM.ask.flatMap(arg => f(arg).fold(ReadM.error, _.pure[ReadM]))
 
   /** Specify the error to display when no argument is provided to this option. */
   def noArgError[A](e: ParseError): Mod[OptionFields, A] =
@@ -118,7 +127,7 @@ private[opts] trait Builder {
 
   /** Builder for a command parser. The command modifier can be used to specify individual commands. */
   def subparser[A](mod: Mod[CommandFields, A]*): Parser[A] = {
-    val m = mod.toList.suml
+    val m = mod.toList.combineAll
     val Mod(_, d, g) = metavar[CommandFields, A]("COMMAND") |+| m
     val reader = Function.tupled(CmdReader.apply[A] _)(mkCommand(m))
     mkParser(d, g, reader)
@@ -126,7 +135,7 @@ private[opts] trait Builder {
 
   /** Builder for an argument parser. */
   def argument[A](p: ReadM[A], mod: Mod[ArgumentFields, A]*): Parser[A] = {
-    val m = mod.toList.suml
+    val m = mod.toList.combineAll
     mkParser(m.prop, m.g, ArgReader(CReader(p)))
   }
 
@@ -161,15 +170,15 @@ private[opts] trait Builder {
   def bigDecimalArgument(mod: Mod[ArgumentFields, BigDecimal]*): Parser[BigDecimal] = makeArgument(readBigDecimal, mod)
 
   private def makeArgument[A](readM: ReadM[A], mod: Seq[Mod[ArgumentFields, A]]): Parser[A] =
-    argument(readM, mod.toList.suml)
+    argument(readM, mod.toList.combineAll)
 
   /** Builder for a flag parser. */
   def flag[A](defV: A, actV: A, mod: Mod[FlagFields, A]*): Parser[A] =
-    flag_(actV, mod.toList.suml) <+> defV.pure[Parser]
+    flag_(actV, mod.toList.combineAll) <+> defV.pure[Parser]
 
   /** Builder for a flag parser without a default value. */
   def flag_[A](actV: A, mod: Mod[FlagFields, A]*): Parser[A] = {
-    val m = mod.toList.suml
+    val m = mod.toList.combineAll
     val fields = m.f(FlagFields(Nil, actV))
     val reader = FlagReader(fields.names, fields.active)
     mkParser(m.prop, m.g, reader)
@@ -177,15 +186,15 @@ private[opts] trait Builder {
 
   /** Builder for a boolean flag. */
   def switch(mod: Mod[FlagFields, Boolean]*): Parser[Boolean] =
-    flag(false, true, mod.toList.suml)
+    flag(false, true, mod.toList.combineAll)
 
   /** An option that always fails. */
   def abortOption[A](err: ParseError, mod: Mod[OptionFields, A => A]*): Parser[A => A] =
-    option(ReadM.abort(err), noArgError[A => A](err) |+| value(identity) |+| metavar("") |+| mod.toList.suml)
+    option(ReadM.abort(err), noArgError[A => A](err) |+| value(identity) |+| metavar("") |+| mod.toList.combineAll)
 
   /** An option that always fails and displays a message. */
   def infoOption[A](s: String, mod: Mod[OptionFields, A => A]*): Parser[A => A] =
-    abortOption(InfoMsg(s), mod.toList.suml)
+    abortOption(InfoMsg(s), mod.toList.combineAll)
 
   /** Builder for an option taking a String argument. */
   def strOption(mod: Mod[OptionFields, String]*): Parser[String] = makeOption(readStr, mod)
@@ -218,10 +227,10 @@ private[opts] trait Builder {
   def bigDecimalOption(mod: Mod[OptionFields, BigDecimal]*): Parser[BigDecimal] = makeOption(readBigDecimal, mod)
 
   private def makeOption[A](readM: ReadM[A], mod: Seq[Mod[OptionFields, A]]): Parser[A] =
-    option(readM, mod.toList.suml)
+    option(readM, mod.toList.combineAll)
 
   def option[A](r: ReadM[A], mod: Mod[OptionFields, A]*): Parser[A] = {
-    val Mod(f, d, g) = metavar[OptionFields, A]("ARG") |+| mod.toList.suml
+    val Mod(f, d, g) = metavar[OptionFields, A]("ARG") |+| mod.toList.combineAll
     val fields = f(OptionFields(Nil, ErrorMsg("")))
     val cReader = CReader(r)
     val reader = OptionReader(fields.names, cReader, fields.noArgError)
@@ -265,7 +274,7 @@ private[opts] trait Builder {
       footer = empty,
       failureCode = 1,
       intersperse = true)
-    mod.toList.suml.run(base)
+    mod.toList.combineAll.run(base)
   }
 
   type PrefsMod = Endo[ParserPrefs]
@@ -291,11 +300,11 @@ private[opts] trait Builder {
       showHelpOnError = false,
       backtrack = true,
       columns = 80)
-    mod.toList.suml.run(base)
+    mod.toList.combineAll.run(base)
   }
 
   /** Trivial option modifier. */
   def idm[M](implicit M: Monoid[M]): M =
-    M.zero
+    M.empty
 
 }

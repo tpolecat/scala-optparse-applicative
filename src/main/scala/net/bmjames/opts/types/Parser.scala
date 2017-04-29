@@ -2,8 +2,8 @@ package net.bmjames.opts.types
 
 import net.bmjames.opts.common.{mapParser, treeMapParser}
 import net.bmjames.opts.types.ParserM._
-import scalaz.{NonEmptyList, ~>, Const, ApplicativePlus}
-import scalaz.syntax.applicativePlus._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
 
 sealed trait Parser[A] {
 
@@ -40,8 +40,8 @@ object Parser extends ParserInstances with ParserFunctions
 
 private[opts] trait ParserInstances {
 
-  implicit val parserApplicativePlus: ApplicativePlus[Parser] =
-    new ApplicativePlus[Parser] {
+  implicit val parserAlternative: Alternative[Parser] =
+    new Alternative[Parser] {
       override def map[A, B](fa: Parser[A])(f: A => B): Parser[B] =
         fa.map(f)
 

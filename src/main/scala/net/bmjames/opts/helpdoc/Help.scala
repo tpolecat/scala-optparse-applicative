@@ -3,12 +3,12 @@ package net.bmjames.opts.helpdoc
 import net.bmjames.opts.types._
 import net.bmjames.opts.common.showOption
 
-import scalaz._
-import scalaz.std.option._
-import scalaz.syntax.std.list._
-import scalaz.syntax.std.boolean._
-import scalaz.syntax.functor._
-import scalaz.syntax.monoid._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
 
 
 private[opts] trait Help {

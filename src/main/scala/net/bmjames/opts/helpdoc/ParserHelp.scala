@@ -2,10 +2,10 @@ package net.bmjames.opts.helpdoc
 
 import net.bmjames.opts.types.Doc
 import Chunk._
-import scalaz.{Monoid, Show}
-import scalaz.std.string._
-import scalaz.syntax.semigroup._
-import scalaz.syntax.show._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
 
 final case class ParserHelp(error:  Chunk[Doc],
                             header: Chunk[Doc],

@@ -5,7 +5,7 @@ import net.bmjames.opts.test.example.Commands
 import net.bmjames.opts.types.{ParserResult, Failure, Success, ParserInfo}
 
 import org.scalacheck.{Prop, Properties}
-import scalaz.syntax.apply._
+import cats._, cats.data._, cats.implicits._
 
 import example._
 

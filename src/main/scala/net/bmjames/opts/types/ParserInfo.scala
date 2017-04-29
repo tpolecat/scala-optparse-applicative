@@ -2,8 +2,8 @@ package net.bmjames.opts.types
 
 import net.bmjames.opts.helpdoc.Chunk
 
-import scalaz.Functor
-import scalaz.syntax.functor._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
 
 
 /** A full description for a runnable Parser for a program.

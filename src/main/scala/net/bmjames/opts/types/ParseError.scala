@@ -1,6 +1,6 @@
 package net.bmjames.opts.types
 
-import scalaz.Monoid
+import cats._, cats.data._, cats.implicits._
 
 sealed trait ParseError
 case class ErrorMsg(msg: String) extends ParseError

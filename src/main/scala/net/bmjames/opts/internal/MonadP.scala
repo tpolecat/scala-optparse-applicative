@@ -1,23 +1,23 @@
 package net.bmjames.opts.internal
 
-import scalaz._
-import scalaz.Id.Id
-import scalaz.WriterT.{writerT, writerTHoist}
-import scalaz.EitherT.eitherTHoist
-import scalaz.syntax.monadPlus._
-import scalaz.syntax.std.option._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
 
 import net.bmjames.opts.types.{ParseError, ParserPrefs, Parser, ParserInfo}
 
 trait Completer
 
-trait MonadP[F[_]] extends MonadPlus[F] {
+trait MonadP[F[_]] extends MonadCombine[F] {
   def setContext[A](s: Option[String], p: ParserInfo[A]): F[Unit]
   def setParser[A](s: Option[String], p: Parser[A]): F[Unit]
   def getPrefs: F[ParserPrefs]
 
   def missingArg[A](e: ParseError): F[A]
-  def attempt[A](fa: F[A]): F[ParseError \/ A]
+  def attempt[A](fa: F[A]): F[ParseError Either A]
   def error[A](e: ParseError): F[A]
   def exit[A, B](p: Parser[B], a: Option[A]): F[A]
 }
@@ -33,9 +33,9 @@ object P {
   type ContextWriter[A] = WriterT[ParserPrefsReader, Context, A]
 
   def tell[F[_]: Applicative, W](w: W): WriterT[F, W, Unit] =
-    writerT((w, ()).point[F])
+    writerT((w, ()).pure[F])
 
-  def hoistEither[F[_], A](fa: ParseError \/ A)(implicit F: MonadP[F]): F[A] =
+  def hoistEither[F[_], A](fa: ParseError Either A)(implicit F: MonadP[F]): F[A] =
     fa.fold(F.error, a => F.point(a))
 
   implicit val pMonadP: MonadP[P] =
@@ -43,7 +43,7 @@ object P {
       def bind[A, B](fa: P[A])(f: A => P[B]): P[B] =
         P(fa.run.flatMap(f andThen (_.run)))
 
-      def point[A](a: => A): P[A] = P(a.point[P_])
+      def point[A](a: => A): P[A] = P(a.pure[P_])
 
       def empty[A]: P[A] = P(PlusEmpty[P_].empty)
 
@@ -66,14 +66,14 @@ object P {
       def missingArg[A](e: ParseError): P[A] =
         error(e)
 
-      def attempt[A](fa: P[A]): P[ParseError \/ A] =
+      def attempt[A](fa: P[A]): P[ParseError Either A] =
         P(eitherTHoist[ParseError].liftM(fa.run.run))
 
       def error[A](e: ParseError): P[A] =
-        P(EitherT.left(e.point[ContextWriter]))
+        P(EitherT.left(e.pure[ContextWriter]))
 
       def exit[A, B](p: Parser[B], a: Option[A]): P[A] =
-        P(a.orEmpty[P_])
+        P(a.orEmptyK[P_])
     }
 
 }

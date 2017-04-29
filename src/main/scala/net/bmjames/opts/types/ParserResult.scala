@@ -2,7 +2,7 @@ package net.bmjames.opts.types
 
 import net.bmjames.opts.helpdoc.ParserHelp
 
-import scalaz.Functor
+import cats._, cats.data._, cats.implicits._
 
 sealed trait ParserResult[A]
 

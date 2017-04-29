@@ -2,7 +2,7 @@ package net.bmjames.opts.test.example
 
 import net.bmjames.opts._
 
-import scalaz.syntax.apply._
+import cats._, cats.data._, cats.implicits._
 
 sealed trait Sample
 case class Hello(targets: List[String]) extends Sample

@@ -7,9 +7,9 @@ import net.bmjames.opts.internal._
 import net.bmjames.opts.types._
 import net.bmjames.opts.builder.internal.OptionFields
 
-import scalaz.{Const, ~>, -\/, \/-}
-import scalaz.syntax.applicative._
-import scalaz.syntax.semigroup._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
 
 private[opts] trait Extra {
 
@@ -38,8 +38,8 @@ private[opts] trait Extra {
   def execParserPure[A](pprefs: ParserPrefs, pinfo: ParserInfo[A], args: List[String]): ParserResult[A] = {
     val p = runParserInfo[P, A](pinfo, args)
     runP(p, pprefs) match {
-      case (_, \/-(r))     => Success(r)
-      case (ctx, -\/(err)) => Failure(parserFailure(pprefs, pinfo, err, ctx))
+      case (_, Right(r))     => Success(r)
+      case (ctx, Left(err)) => Failure(parserFailure(pprefs, pinfo, err, ctx))
     }
   }
 

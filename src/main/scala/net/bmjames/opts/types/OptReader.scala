@@ -1,8 +1,8 @@
 package net.bmjames.opts.types
 
-import scalaz.{Functor, MonadPlus, \/}
-import scalaz.syntax.applicative._
-import scalaz.std.option._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
+import cats._, cats.data._, cats.implicits._
 
 import CReader._
 
